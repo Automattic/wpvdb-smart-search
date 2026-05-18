@@ -5,7 +5,7 @@
 [![PHP](https://img.shields.io/badge/PHP-8.3%2B-777bb4?logo=php&logoColor=white)](#requirements)
 [![License](https://img.shields.io/badge/License-GPLv2%2B-blue.svg)](LICENSE)
 
-Demo search UI and REST adapter for dense, sparse, and hybrid search over content indexed by [`wpvdb`](https://github.com/rbcorrales/wpvdb).
+Demo search UI and REST adapter for dense, sparse, and hybrid search over content indexed by [`wpvdb`](https://github.com/Automattic/wpvdb).
 
 ![WPVDB Smart Search interface](docs/screenshots/screenshot.png)
 

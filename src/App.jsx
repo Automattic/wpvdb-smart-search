@@ -358,7 +358,7 @@ export default function App( { config } ) {
 							{
 								wpvdb: (
 									<a
-										href="https://github.com/rbcorrales/wpvdb"
+										href="https://github.com/Automattic/wpvdb"
 										target="_blank"
 										rel="noopener noreferrer"
 									>
