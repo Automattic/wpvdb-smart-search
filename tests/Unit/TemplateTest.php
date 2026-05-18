@@ -117,6 +117,7 @@ final class TemplateTest extends TestCase {
 	 * @covers \WPVDB_Smart_Search\Template::requested_lang
 	 */
 	public function test_requested_lang_accepts_locale_shaped_query_param(): void {
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Tests seed query params for the private locale resolver.
 		$_GET['lang'] = '<b>es_ES</b>';
 
 		$reflection = new ReflectionMethod( Template::class, 'requested_lang' );
@@ -134,6 +135,7 @@ final class TemplateTest extends TestCase {
 	 * @covers \WPVDB_Smart_Search\Template::requested_lang
 	 */
 	public function test_requested_lang_rejects_path_like_values(): void {
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Tests seed query params for the private locale resolver.
 		$_GET['lang'] = '../es_ES';
 
 		$reflection = new ReflectionMethod( Template::class, 'requested_lang' );
