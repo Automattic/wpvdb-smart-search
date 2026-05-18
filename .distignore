@@ -8,6 +8,8 @@
 .github
 .hooks
 .phpcs-cache
+.phpunit.cache
+.phpunit.result.cache
 .DS_Store
 Thumbs.db
 *.lock
@@ -17,6 +19,8 @@ package.json
 package-lock.json
 phpcs.xml
 phpstan.neon.dist
+phpunit.xml
+phpunit.xml.dist
 AGENTS.md
 CLAUDE.md
 CONTRIBUTING.md
@@ -35,4 +39,5 @@ node_modules
 /docs
 /src
 /release
+/tests
 /vendor

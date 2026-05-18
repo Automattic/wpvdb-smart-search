@@ -46,6 +46,7 @@ Run the local checks:
 
 ```bash
 bun run lint
+bun run test
 ```
 
 The main branch maintenance workflow regenerates translation files and commits them when strings change.

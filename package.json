@@ -23,6 +23,7 @@
 		"lint:js": "wp-scripts lint-js 'src/**/*.{js,jsx}'",
 		"lint:css": "wp-scripts lint-style 'src/**/*.css' --allow-empty-input",
 		"lint:php": "./vendor/bin/phpcs",
+		"test": "composer test",
 		"fix": "bun run fix:js && bun run fix:css && bun run fix:php",
 		"fix:js": "wp-scripts lint-js --fix 'src/**/*.{js,jsx}'",
 		"fix:css": "wp-scripts lint-style --fix 'src/**/*.css' --allow-empty-input",

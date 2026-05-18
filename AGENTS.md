@@ -18,5 +18,5 @@ Agent guidance for this repository. Keep this file focused on non-obvious constr
 
 ## Development notes
 
-- Build and lint commands are defined in `package.json` and `composer.json`; prefer those scripts instead of inventing ad hoc commands.
+- Build, lint, and test commands are defined in `package.json` and `composer.json`; prefer those scripts instead of inventing ad hoc commands.
 - Keep asset cache busting based on `filemtime()` unless the build or release flow changes.

@@ -18,4 +18,5 @@ jobs:
       composer-install: true
       bun-install: true
       bun-lint-command: bun run lint
+      test-command: bun run test
       build-command: bun run build
