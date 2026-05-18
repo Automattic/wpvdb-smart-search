@@ -3,3 +3,4 @@ vendor/
 dist/
 release/
 .phpcs-cache
+.phpunit.cache/

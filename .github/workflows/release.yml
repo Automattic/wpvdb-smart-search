@@ -24,6 +24,7 @@ jobs:
       composer-install: true
       bun-install: true
       bun-lint-command: bun run lint
+      test-command: bun run test
       build-command: bun run build
       i18n-command: bun run i18n
       required-artifacts: |
