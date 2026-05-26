@@ -21,34 +21,28 @@ class Settings {
 	 * Register hooks.
 	 */
 	public static function init(): void {
-		add_action( 'admin_menu', [ __CLASS__, 'register_page' ], 20 );
+		add_filter( 'wpvdb_admin_tabs', [ __CLASS__, 'register_wpvdb_tab' ] );
 		add_action( 'admin_init', [ __CLASS__, 'register_settings' ] );
 		add_action( 'admin_post_wpvdb_smart_search_clear_site_search_cache', [ __CLASS__, 'handle_clear_site_search_cache' ] );
 	}
 
 	/**
-	 * Register the settings page.
+	 * Register the Smart Search tab in the Vector DB admin layout.
+	 *
+	 * @param array<string, mixed> $tabs Admin tabs.
+	 * @return array<string, mixed>
 	 */
-	public static function register_page(): void {
-		if ( class_exists( '\WPVDB\Admin' ) ) {
-			add_submenu_page(
-				'wpvdb-dashboard',
-				__( 'Smart Search', 'wpvdb-smart-search' ),
-				__( 'Smart Search', 'wpvdb-smart-search' ),
-				'manage_options',
-				self::PAGE_SLUG,
-				[ __CLASS__, 'render_page' ]
-			);
-			return;
-		}
+	public static function register_wpvdb_tab( array $tabs ): array {
+		$tabs['smart-search'] = [
+			'label'           => __( 'Smart Search', 'wpvdb-smart-search' ),
+			'menu_label'      => __( 'Smart Search', 'wpvdb-smart-search' ),
+			'page'            => self::PAGE_SLUG,
+			'capability'      => 'manage_options',
+			'position'        => 50,
+			'render_callback' => [ __CLASS__, 'render_page' ],
+		];
 
-		add_options_page(
-			__( 'WPVDB Smart Search', 'wpvdb-smart-search' ),
-			__( 'WPVDB Smart Search', 'wpvdb-smart-search' ),
-			'manage_options',
-			self::PAGE_SLUG,
-			[ __CLASS__, 'render_page' ]
-		);
+		return $tabs;
 	}
 
 	/**
@@ -268,7 +262,7 @@ class Settings {
 					'page'                      => self::PAGE_SLUG,
 					'site-search-cache-cleared' => '1',
 				],
-				self::settings_page_base_url()
+				admin_url( 'admin.php' )
 			)
 		);
 		exit;
@@ -288,98 +282,94 @@ class Settings {
 		$selected_types      = self::site_search_post_types();
 		$indexed_type_labels = array_intersect_key( is_array( $public_types ) ? $public_types : [], array_flip( $indexed_types ) );
 		?>
-		<div class="wrap">
-			<h1><?php esc_html_e( 'WPVDB Smart Search', 'wpvdb-smart-search' ); ?></h1>
-
-			<?php if ( isset( $_GET['site-search-cache-cleared'] ) ) : // phpcs:ignore WordPress.Security.NonceVerification.Recommended ?>
-				<div class="notice notice-success is-dismissible">
-					<p><?php esc_html_e( 'Site search cache cleared.', 'wpvdb-smart-search' ); ?></p>
-				</div>
-			<?php endif; ?>
-
-			<?php if ( in_array( $settings['site_search_mode'], [ 'hybrid', 'sparse' ], true ) && class_exists( '\WPVDB_Search\Schema' ) && ! \WPVDB_Search\Schema::has_fulltext_index() ) : ?>
-				<div class="notice notice-warning">
-					<p><?php esc_html_e( 'Sparse or hybrid mode is selected, but the FULLTEXT index is not ready. Sparse ranking will be unavailable until the index is ready.', 'wpvdb-smart-search' ); ?></p>
-				</div>
-			<?php endif; ?>
-
-			<form id="wpvdb-smart-search-settings-form" method="post" action="options.php">
-				<?php settings_fields( self::PAGE_SLUG ); ?>
-				<table class="form-table" role="presentation">
-					<tr>
-						<th scope="row"><?php esc_html_e( 'Site search', 'wpvdb-smart-search' ); ?></th>
-						<td>
-							<label>
-								<input type="checkbox" name="<?php echo esc_attr( self::OPTION_NAME ); ?>[site_search_enabled]" value="1" <?php checked( $settings['site_search_enabled'] ); ?> />
-								<?php esc_html_e( 'Use semantic search for the main site search.', 'wpvdb-smart-search' ); ?>
-							</label>
-						</td>
-					</tr>
-					<tr>
-						<th scope="row"><?php esc_html_e( 'Post types', 'wpvdb-smart-search' ); ?></th>
-						<td>
-							<?php foreach ( $indexed_type_labels as $type => $obj ) : ?>
-								<label>
-									<input type="checkbox" name="<?php echo esc_attr( self::OPTION_NAME ); ?>[site_search_types][]" value="<?php echo esc_attr( (string) $type ); ?>" <?php checked( in_array( (string) $type, $selected_types, true ) ); ?> />
-									<?php echo esc_html( $obj->labels->singular_name ?? $type ); ?>
-								</label><br />
-							<?php endforeach; ?>
-							<?php if ( empty( $indexed_type_labels ) ) : ?>
-								<p><?php esc_html_e( 'No public post types are currently enabled in Vector DB content settings.', 'wpvdb-smart-search' ); ?></p>
-							<?php endif; ?>
-							<p class="description">
-								<?php esc_html_e( 'Only post types enabled in Vector DB content settings can be used for semantic site search.', 'wpvdb-smart-search' ); ?>
-								<?php if ( class_exists( '\WPVDB\Admin' ) ) : ?>
-									<a href="<?php echo esc_url( self::wpvdb_content_settings_url() ); ?>"><?php esc_html_e( 'Open Vector DB content settings.', 'wpvdb-smart-search' ); ?></a>
-								<?php endif; ?>
-							</p>
-						</td>
-					</tr>
-					<tr>
-						<th scope="row"><?php esc_html_e( 'Mode', 'wpvdb-smart-search' ); ?></th>
-						<td>
-							<?php
-							$modes = [
-								'dense'  => __( 'Dense', 'wpvdb-smart-search' ),
-								'hybrid' => __( 'Hybrid', 'wpvdb-smart-search' ),
-								'sparse' => __( 'Sparse', 'wpvdb-smart-search' ),
-							];
-							foreach ( $modes as $mode => $label ) :
-								?>
-								<label>
-									<input type="radio" name="<?php echo esc_attr( self::OPTION_NAME ); ?>[site_search_mode]" value="<?php echo esc_attr( $mode ); ?>" <?php checked( $settings['site_search_mode'], $mode ); ?> />
-									<?php echo esc_html( $label ); ?>
-								</label><br />
-							<?php endforeach; ?>
-							<p class="description"><?php esc_html_e( 'Dense is the fastest default. Hybrid and sparse add keyword ranking when the FULLTEXT index is ready.', 'wpvdb-smart-search' ); ?></p>
-						</td>
-					</tr>
-					<tr>
-						<th scope="row"><label for="wpvdb-smart-search-site-search-pool"><?php esc_html_e( 'Pool size', 'wpvdb-smart-search' ); ?></label></th>
-						<td>
-							<input id="wpvdb-smart-search-site-search-pool" type="number" min="10" max="200" name="<?php echo esc_attr( self::OPTION_NAME ); ?>[site_search_pool]" value="<?php echo esc_attr( (string) $settings['site_search_pool'] ); ?>" />
-						</td>
-					</tr>
-					<tr>
-						<th scope="row"><?php esc_html_e( 'Fallback', 'wpvdb-smart-search' ); ?></th>
-						<td>
-							<label>
-								<input type="checkbox" name="<?php echo esc_attr( self::OPTION_NAME ); ?>[site_search_fallback]" value="1" <?php checked( $settings['site_search_fallback'] ); ?> />
-								<?php esc_html_e( 'Fall back to default keyword search when semantic search returns no results.', 'wpvdb-smart-search' ); ?>
-							</label>
-						</td>
-					</tr>
-				</table>
-			</form>
-
-			<div style="display: flex; gap: 8px; align-items: center; margin-top: 20px;">
-				<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
-					<?php wp_nonce_field( 'wpvdb_smart_search_clear_site_search_cache' ); ?>
-					<input type="hidden" name="action" value="wpvdb_smart_search_clear_site_search_cache" />
-					<?php submit_button( __( 'Clear site search cache', 'wpvdb-smart-search' ), 'secondary', 'submit', false ); ?>
-				</form>
-				<?php submit_button( __( 'Save Changes', 'wpvdb-smart-search' ), 'primary', 'submit', false, [ 'form' => 'wpvdb-smart-search-settings-form' ] ); ?>
+		<?php if ( isset( $_GET['site-search-cache-cleared'] ) ) : // phpcs:ignore WordPress.Security.NonceVerification.Recommended ?>
+			<div class="notice notice-success is-dismissible">
+				<p><?php esc_html_e( 'Site search cache cleared.', 'wpvdb-smart-search' ); ?></p>
 			</div>
+		<?php endif; ?>
+
+		<?php if ( in_array( $settings['site_search_mode'], [ 'hybrid', 'sparse' ], true ) && class_exists( '\WPVDB_Search\Schema' ) && ! \WPVDB_Search\Schema::has_fulltext_index() ) : ?>
+			<div class="notice notice-warning">
+				<p><?php esc_html_e( 'Sparse or hybrid mode is selected, but the FULLTEXT index is not ready. Sparse ranking will be unavailable until the index is ready.', 'wpvdb-smart-search' ); ?></p>
+			</div>
+		<?php endif; ?>
+
+		<form id="wpvdb-smart-search-settings-form" method="post" action="options.php">
+			<?php settings_fields( self::PAGE_SLUG ); ?>
+			<table class="form-table" role="presentation">
+				<tr>
+					<th scope="row"><?php esc_html_e( 'Site search', 'wpvdb-smart-search' ); ?></th>
+					<td>
+						<label>
+							<input type="checkbox" name="<?php echo esc_attr( self::OPTION_NAME ); ?>[site_search_enabled]" value="1" <?php checked( $settings['site_search_enabled'] ); ?> />
+							<?php esc_html_e( 'Use semantic search for the main site search.', 'wpvdb-smart-search' ); ?>
+						</label>
+					</td>
+				</tr>
+				<tr>
+					<th scope="row"><?php esc_html_e( 'Post types', 'wpvdb-smart-search' ); ?></th>
+					<td>
+						<?php foreach ( $indexed_type_labels as $type => $obj ) : ?>
+							<label>
+								<input type="checkbox" name="<?php echo esc_attr( self::OPTION_NAME ); ?>[site_search_types][]" value="<?php echo esc_attr( (string) $type ); ?>" <?php checked( in_array( (string) $type, $selected_types, true ) ); ?> />
+								<?php echo esc_html( $obj->labels->singular_name ?? $type ); ?>
+							</label><br />
+						<?php endforeach; ?>
+						<?php if ( empty( $indexed_type_labels ) ) : ?>
+							<p><?php esc_html_e( 'No public post types are currently enabled in Vector DB content settings.', 'wpvdb-smart-search' ); ?></p>
+						<?php endif; ?>
+						<p class="description">
+							<?php esc_html_e( 'Only post types enabled in Vector DB content settings can be used for semantic site search.', 'wpvdb-smart-search' ); ?>
+							<?php if ( class_exists( '\WPVDB\Admin' ) ) : ?>
+								<a href="<?php echo esc_url( self::wpvdb_content_settings_url() ); ?>"><?php esc_html_e( 'Open Vector DB content settings.', 'wpvdb-smart-search' ); ?></a>
+							<?php endif; ?>
+						</p>
+					</td>
+				</tr>
+				<tr>
+					<th scope="row"><?php esc_html_e( 'Mode', 'wpvdb-smart-search' ); ?></th>
+					<td>
+						<?php
+						$modes = [
+							'dense'  => __( 'Dense', 'wpvdb-smart-search' ),
+							'hybrid' => __( 'Hybrid', 'wpvdb-smart-search' ),
+							'sparse' => __( 'Sparse', 'wpvdb-smart-search' ),
+						];
+						foreach ( $modes as $mode => $label ) :
+							?>
+							<label>
+								<input type="radio" name="<?php echo esc_attr( self::OPTION_NAME ); ?>[site_search_mode]" value="<?php echo esc_attr( $mode ); ?>" <?php checked( $settings['site_search_mode'], $mode ); ?> />
+								<?php echo esc_html( $label ); ?>
+							</label><br />
+						<?php endforeach; ?>
+						<p class="description"><?php esc_html_e( 'Dense is the fastest default. Hybrid and sparse add keyword ranking when the FULLTEXT index is ready.', 'wpvdb-smart-search' ); ?></p>
+					</td>
+				</tr>
+				<tr>
+					<th scope="row"><label for="wpvdb-smart-search-site-search-pool"><?php esc_html_e( 'Pool size', 'wpvdb-smart-search' ); ?></label></th>
+					<td>
+						<input id="wpvdb-smart-search-site-search-pool" type="number" min="10" max="200" name="<?php echo esc_attr( self::OPTION_NAME ); ?>[site_search_pool]" value="<?php echo esc_attr( (string) $settings['site_search_pool'] ); ?>" />
+					</td>
+				</tr>
+				<tr>
+					<th scope="row"><?php esc_html_e( 'Fallback', 'wpvdb-smart-search' ); ?></th>
+					<td>
+						<label>
+							<input type="checkbox" name="<?php echo esc_attr( self::OPTION_NAME ); ?>[site_search_fallback]" value="1" <?php checked( $settings['site_search_fallback'] ); ?> />
+							<?php esc_html_e( 'Fall back to default keyword search when semantic search returns no results.', 'wpvdb-smart-search' ); ?>
+						</label>
+					</td>
+				</tr>
+			</table>
+		</form>
+
+		<div style="display: flex; gap: 8px; align-items: center; margin-top: 20px;">
+			<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
+				<?php wp_nonce_field( 'wpvdb_smart_search_clear_site_search_cache' ); ?>
+				<input type="hidden" name="action" value="wpvdb_smart_search_clear_site_search_cache" />
+				<?php submit_button( __( 'Clear site search cache', 'wpvdb-smart-search' ), 'secondary', 'submit', false ); ?>
+			</form>
+			<?php submit_button( __( 'Save Changes', 'wpvdb-smart-search' ), 'primary', 'submit', false, [ 'form' => 'wpvdb-smart-search-settings-form' ] ); ?>
 		</div>
 		<?php
 	}
@@ -395,16 +385,5 @@ class Settings {
 			],
 			admin_url( 'admin.php' )
 		);
-	}
-
-	/**
-	 * Return the admin page base URL for redirects.
-	 */
-	private static function settings_page_base_url(): string {
-		if ( class_exists( '\WPVDB\Admin' ) ) {
-			return admin_url( 'admin.php' );
-		}
-
-		return admin_url( 'options-general.php' );
 	}
 }
