@@ -16,7 +16,7 @@ msgstr ""
 
 #. Plugin Name of the plugin
 #: wpvdb-smart-search.php includes/class-settings.php:34
-#: includes/class-settings.php:35 includes/class-settings.php:223
+#: includes/class-settings.php:35 includes/class-settings.php:240
 msgid "WPVDB Smart Search"
 msgstr "WPVDB Smart Search"
 
@@ -28,11 +28,12 @@ msgstr "https://github.com/rbcorrales/wpvdb-smart-search"
 #. Description of the plugin
 #: wpvdb-smart-search.php
 msgid ""
-"Adds a public Smart Search page and REST endpoint for wpvdb dense, sparse, "
-"and hybrid search."
+"Adds a public Smart Search page, REST endpoint, and optional site search "
+"replacement for wpvdb dense, sparse, and hybrid search."
 msgstr ""
-"Agrega una página pública de Smart Search y un endpoint REST para búsqueda "
-"densa, dispersa e híbrida con wpvdb."
+"Agrega una página pública de Smart Search, un endpoint REST y un reemplazo "
+"opcional para la búsqueda del sitio con búsqueda densa, dispersa e híbrida "
+"de wpvdb."
 
 #. Author of the plugin
 #: wpvdb-smart-search.php
@@ -328,52 +329,69 @@ msgstr "Pregunta como un humano, no como una consulta SQL…"
 msgid "Too many requests, slow down."
 msgstr "Demasiadas solicitudes, por favor espera un momento."
 
-#: includes/class-settings.php:192
+#: includes/class-settings.php:209
 msgid "You do not have permission to manage Smart Search settings."
 msgstr ""
 
-#: includes/class-settings.php:227
+#: includes/class-settings.php:244
 msgid "Native search cache cleared."
-msgstr ""
+msgstr "Caché de búsqueda nativa vaciada."
 
-#: includes/class-settings.php:233
+#: includes/class-settings.php:250
 msgid ""
-"Hybrid mode is selected, but the FULLTEXT index is not ready. Native search "
-"will behave like dense search until sparse search is ready."
+"Sparse or hybrid mode is selected, but the FULLTEXT index is not ready. "
+"Sparse ranking will be unavailable until the index is ready."
 msgstr ""
+"El modo disperso o híbrido está seleccionado, pero el índice FULLTEXT no "
+"está listo. La ordenación dispersa no estará disponible hasta que el índice "
+"esté listo."
 
-#: includes/class-settings.php:241
+#: includes/class-settings.php:258
 msgid "Native site search"
-msgstr ""
+msgstr "Búsqueda nativa del sitio"
 
-#: includes/class-settings.php:245
+#: includes/class-settings.php:262
 msgid "Use semantic search for the main site search."
-msgstr ""
+msgstr "Usa búsqueda semántica para la búsqueda principal del sitio."
 
-#: includes/class-settings.php:250 src/Form.jsx:106
+#: includes/class-settings.php:267 src/Form.jsx:106
 msgid "Mode"
 msgstr "Modo"
 
-#: includes/class-settings.php:261
+#: includes/class-settings.php:271 src/Form.jsx:19
+msgid "Dense"
+msgstr "Denso"
+
+#: includes/class-settings.php:272
+msgid "Hybrid"
+msgstr "Híbrido"
+
+#: includes/class-settings.php:273 src/Form.jsx:27
+msgid "Sparse"
+msgstr "Disperso"
+
+#: includes/class-settings.php:285
 msgid "Pool size"
-msgstr ""
+msgstr "Tamaño del grupo"
 
-#: includes/class-settings.php:267
+#: includes/class-settings.php:291
 msgid "Fallback"
-msgstr ""
+msgstr "Reserva"
 
-#: includes/class-settings.php:271
+#: includes/class-settings.php:295
 msgid ""
 "Fall back to default keyword search when semantic search returns no results."
 msgstr ""
+"Volver a la búsqueda por palabras clave predeterminada cuando la búsqueda "
+"semántica no devuelva resultados."
 
-#: includes/class-settings.php:276
+#: includes/class-settings.php:300
 msgid "Post types"
-msgstr ""
+msgstr "Tipos de contenido"
 
-#: includes/class-settings.php:293
+#: includes/class-settings.php:317
 msgid "Clear native search cache"
-msgstr ""
+msgstr "Vaciar caché de búsqueda nativa"
 
 #: templates/page.php:64 src/App.jsx:262
 msgid "Smart Search"
@@ -433,10 +451,6 @@ msgstr ""
 "Ejecuta denso y disperso y los combina con Reciprocal Rank Fusion. Opción "
 "recomendada."
 
-#: src/Form.jsx:19
-msgid "Dense"
-msgstr "Denso"
-
 #: src/Form.jsx:20
 msgid ""
 "Semantic vector search via VEC_DISTANCE_COSINE. Matches by meaning; weaker "
@@ -444,10 +458,6 @@ msgid ""
 msgstr ""
 "Búsqueda vectorial semántica con VEC_DISTANCE_COSINE. Empareja por "
 "significado; más débil con palabras exactas."
-
-#: src/Form.jsx:27
-msgid "Sparse"
-msgstr "Disperso"
 
 #: src/Form.jsx:28
 msgid ""

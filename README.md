@@ -5,9 +5,9 @@
 [![PHP](https://img.shields.io/badge/PHP-8.3%2B-777bb4?logo=php&logoColor=white)](#requirements)
 [![License](https://img.shields.io/badge/License-GPLv2%2B-blue.svg)](LICENSE)
 
-Demo search UI and REST adapter for dense, sparse, and hybrid search over content indexed by [`wpvdb`](https://github.com/Automattic/wpvdb).
+Demo search UI, REST adapter, and optional site search replacement for dense, sparse, and hybrid search over content indexed by [`wpvdb`](https://github.com/Automattic/wpvdb).
 
-The plugin also includes an optional native site search surface. When enabled in Settings, eligible front end `?s=` main queries are answered with ranked semantic results from `wpvdb-search`, while unsupported queries fall through to WordPress search. Native site search defaults to dense mode; hybrid remains available for sites that want sparse plus dense ranking.
+The plugin also includes an optional native site search surface. When enabled in Settings, eligible front end `?s=` main queries are answered with ranked semantic results from `wpvdb-search`, while unsupported queries fall through to WordPress search. Native site search defaults to dense mode; sparse and hybrid remain available for sites that want keyword ranking or sparse plus dense ranking.
 
 ![WPVDB Smart Search interface](docs/screenshots/screenshot.png)
 
