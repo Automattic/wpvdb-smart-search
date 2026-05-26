@@ -174,6 +174,7 @@ class Settings {
 		$pool     = isset( $value['native_pool'] ) ? (int) $value['native_pool'] : (int) $defaults['native_pool'];
 		$types    = isset( $value['native_types'] ) && is_array( $value['native_types'] ) ? $value['native_types'] : $defaults['native_types'];
 		$types    = array_values( array_filter( array_map( 'sanitize_key', (array) $types ) ) );
+		$types    = array_values( array_intersect( $types, self::public_post_type_keys() ) );
 
 		return [
 			'native_enabled'  => array_key_exists( 'native_enabled', $value ) ? ! empty( $value['native_enabled'] ) : ( $saving ? false : (bool) $defaults['native_enabled'] ),
@@ -182,6 +183,22 @@ class Settings {
 			'native_fallback' => array_key_exists( 'native_fallback', $value ) ? ! empty( $value['native_fallback'] ) : ( $saving ? false : (bool) $defaults['native_fallback'] ),
 			'native_types'    => empty( $types ) ? $defaults['native_types'] : $types,
 		];
+	}
+
+	/**
+	 * Return public post type keys allowed for native search.
+	 *
+	 * @return list<string>
+	 */
+	private static function public_post_type_keys(): array {
+		$types = get_post_types( [ 'public' => true ], 'names' );
+		if ( ! is_array( $types ) ) {
+			return [ 'post', 'page' ];
+		}
+
+		$types = array_values( array_filter( array_map( 'sanitize_key', $types ) ) );
+
+		return empty( $types ) ? [ 'post', 'page' ] : $types;
 	}
 
 	/**
@@ -228,9 +245,9 @@ class Settings {
 				</div>
 			<?php endif; ?>
 
-			<?php if ( 'hybrid' === $settings['native_mode'] && class_exists( '\WPVDB_Search\Schema' ) && ! \WPVDB_Search\Schema::has_fulltext_index() ) : ?>
+			<?php if ( in_array( $settings['native_mode'], [ 'hybrid', 'sparse' ], true ) && class_exists( '\WPVDB_Search\Schema' ) && ! \WPVDB_Search\Schema::has_fulltext_index() ) : ?>
 				<div class="notice notice-warning">
-					<p><?php esc_html_e( 'Hybrid mode is selected, but the FULLTEXT index is not ready. Native search will behave like dense search until sparse search is ready.', 'wpvdb-smart-search' ); ?></p>
+					<p><?php esc_html_e( 'Sparse or hybrid mode is selected, but the FULLTEXT index is not ready. Sparse ranking will be unavailable until the index is ready.', 'wpvdb-smart-search' ); ?></p>
 				</div>
 			<?php endif; ?>
 
@@ -249,10 +266,17 @@ class Settings {
 					<tr>
 						<th scope="row"><?php esc_html_e( 'Mode', 'wpvdb-smart-search' ); ?></th>
 						<td>
-							<?php foreach ( [ 'hybrid', 'dense', 'sparse' ] as $mode ) : ?>
+							<?php
+							$modes = [
+								'dense'  => __( 'Dense', 'wpvdb-smart-search' ),
+								'hybrid' => __( 'Hybrid', 'wpvdb-smart-search' ),
+								'sparse' => __( 'Sparse', 'wpvdb-smart-search' ),
+							];
+							foreach ( $modes as $mode => $label ) :
+								?>
 								<label>
 									<input type="radio" name="<?php echo esc_attr( self::OPTION_NAME ); ?>[native_mode]" value="<?php echo esc_attr( $mode ); ?>" <?php checked( $settings['native_mode'], $mode ); ?> />
-									<?php echo esc_html( ucfirst( $mode ) ); ?>
+									<?php echo esc_html( $label ); ?>
 								</label><br />
 							<?php endforeach; ?>
 						</td>

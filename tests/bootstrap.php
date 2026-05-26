@@ -21,7 +21,10 @@ namespace {
 		'posts'             => [],
 		'search_post_ids'   => [],
 		'search_calls'      => 0,
+		'fulltext_ready'    => true,
+		'public_post_types' => [ 'post', 'page', 'book' ],
 		'filters'           => [],
+		'logs'              => [],
 	];
 
 	if ( ! class_exists( 'WP_Rewrite' ) ) {
@@ -148,6 +151,27 @@ namespace {
 		return 1;
 	}
 
+	/**
+	 * @return array<int|string, mixed>
+	 */
+	function get_post_types( array $args = [], string $output = 'names' ): array {
+		unset( $args );
+		$types = $GLOBALS['wpvdb_smart_search_test']['public_post_types'];
+		if ( 'objects' === $output ) {
+			$objects = [];
+			foreach ( $types as $type ) {
+				$objects[ $type ] = (object) [
+					'labels' => (object) [
+						'singular_name' => ucfirst( (string) $type ),
+					],
+				];
+			}
+			return $objects;
+		}
+
+		return $types;
+	}
+
 	function wp_json_encode( mixed $value, int $flags = 0, int $depth = 512 ): string|false {
 		return json_encode( $value, $flags, $depth );
 	}
@@ -237,7 +261,15 @@ namespace WPVDB_Search {
 
 	class Schema {
 		public static function has_fulltext_index(): bool {
-			return true;
+			return (bool) $GLOBALS['wpvdb_smart_search_test']['fulltext_ready'];
+		}
+	}
+}
+
+namespace WPVDB {
+	class Logger {
+		public static function warning( string $message ): void {
+			$GLOBALS['wpvdb_smart_search_test']['logs'][] = $message;
 		}
 	}
 }
