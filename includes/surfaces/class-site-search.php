@@ -246,8 +246,19 @@ class Site_Search {
 
 		global $wpdb;
 		$table = $wpdb->prefix . 'wpvdb_embeddings';
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Trusted table name; fast existence probe cached below.
-		$has_rows = (bool) $wpdb->get_var( "SELECT id FROM {$table} LIMIT 1" );
+
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Fast table-existence probe cached below.
+		$table_exists = $table === $wpdb->get_var(
+			$wpdb->prepare( 'SHOW TABLES LIKE %s', $wpdb->esc_like( $table ) )
+		);
+
+		if ( ! $table_exists ) {
+			set_transient( self::EMBEDDINGS_TRANSIENT, '0', 5 * MINUTE_IN_SECONDS );
+			return false;
+		}
+
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Trusted wpdb-prefixed table name; fast row-existence probe cached above.
+		$has_rows = (bool) $wpdb->get_var( "SELECT id FROM {$wpdb->prefix}wpvdb_embeddings LIMIT 1" );
 		set_transient( self::EMBEDDINGS_TRANSIENT, $has_rows ? '1' : '0', 5 * MINUTE_IN_SECONDS );
 
 		return $has_rows;
