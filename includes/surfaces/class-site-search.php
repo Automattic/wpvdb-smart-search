@@ -1,6 +1,6 @@
 <?php
 /**
- * Native WordPress search replacement surface.
+ * Site search replacement surface.
  *
  * @package WPVDB_Smart_Search
  */
@@ -14,10 +14,10 @@ defined( 'ABSPATH' ) || exit;
 /**
  * Replaces eligible front-end `?s=` main queries with wpvdb semantic results.
  */
-class Native_Search {
-	const QUERY_FLAG           = 'wpvdb_native_search';
-	const CACHE_PREFIX         = 'wpvdb_native_search_';
-	const EMBEDDINGS_TRANSIENT = 'wpvdb_native_search_has_embeddings';
+class Site_Search {
+	const QUERY_FLAG           = 'wpvdb_site_search';
+	const CACHE_PREFIX         = 'wpvdb_site_search_';
+	const EMBEDDINGS_TRANSIENT = 'wpvdb_site_search_has_embeddings';
 
 	/**
 	 * Register hooks.
@@ -65,7 +65,7 @@ class Native_Search {
 			return null;
 		}
 
-		$pool       = Settings::native_pool();
+		$pool       = Settings::site_search_pool();
 		$post_types = self::query_post_types( $query );
 		$statuses   = self::query_post_status( $query );
 		$cache_key  = self::cache_key( $search, $post_types, $pool );
@@ -76,7 +76,7 @@ class Native_Search {
 			$candidates = \WPVDB_Search\Search::post_ids(
 				[
 					'query'     => $search,
-					'mode'      => Settings::native_mode(),
+					'mode'      => Settings::site_search_mode(),
 					'post_type' => $post_types,
 				],
 				$pool
@@ -127,14 +127,14 @@ class Native_Search {
 	}
 
 	/**
-	 * Whether a query should be handled by native semantic search.
+	 * Whether a query should be handled by semantic site search.
 	 *
 	 * @param \WP_Query $query Query object.
 	 */
 	private static function should_handle( \WP_Query $query ): bool {
 		if (
 			is_admin()
-			|| ! Settings::native_enabled()
+			|| ! Settings::site_search_enabled()
 			|| ! class_exists( '\WPVDB_Search\Search' )
 			|| ! method_exists( '\WPVDB_Search\Search', 'post_ids' )
 		) {
@@ -166,11 +166,11 @@ class Native_Search {
 			return false;
 		}
 
-		return (bool) apply_filters( 'wpvdb_native_search_should_handle', true, $query );
+		return (bool) apply_filters( 'wpvdb_should_handle_site_search', true, $query );
 	}
 
 	/**
-	 * Whether query vars include constraints native search cannot honor yet.
+	 * Whether query vars include constraints site search cannot honor yet.
 	 *
 	 * @param \WP_Query $query Query object.
 	 */
@@ -262,7 +262,7 @@ class Native_Search {
 	private static function query_post_types( \WP_Query $query ): array {
 		$post_type = $query->get( 'post_type' );
 		if ( empty( $post_type ) ) {
-			return Settings::native_post_types();
+			return Settings::site_search_post_types();
 		}
 
 		if ( 'any' === $post_type ) {
@@ -272,7 +272,7 @@ class Native_Search {
 		$types = is_array( $post_type ) ? $post_type : [ $post_type ];
 		$types = array_values( array_filter( array_map( 'sanitize_key', $types ) ) );
 
-		return empty( $types ) ? Settings::native_post_types() : $types;
+		return empty( $types ) ? Settings::site_search_post_types() : $types;
 	}
 
 	/**
@@ -305,11 +305,11 @@ class Native_Search {
 		sort( $post_types );
 		$context = [
 			'blog_id'    => get_current_blog_id(),
-			'mode'       => Settings::native_mode(),
+			'mode'       => Settings::site_search_mode(),
 			'pool'       => $pool,
 			'post_types' => $post_types,
 			'search'     => $search,
-			'version'    => Settings::native_cache_version(),
+			'version'    => Settings::site_search_cache_version(),
 		];
 		$json    = wp_json_encode( $context );
 		$hash    = hash( 'sha256', is_string( $json ) ? $json : $search );
@@ -390,7 +390,7 @@ class Native_Search {
 	 * @return array<int, \WP_Post>|null
 	 */
 	private static function empty_ranker_result( \WP_Query $query ): ?array {
-		if ( Settings::native_fallback_enabled() ) {
+		if ( Settings::site_search_fallback_enabled() ) {
 			return null;
 		}
 
@@ -404,18 +404,18 @@ class Native_Search {
 	 * Log a throttled diagnostic when a sparse-capable mode runs without FULLTEXT.
 	 */
 	private static function maybe_log_fulltext_mode_without_fulltext(): void {
-		if ( ! in_array( Settings::native_mode(), [ 'hybrid', 'sparse' ], true ) || ! class_exists( '\WPVDB_Search\Schema' ) || \WPVDB_Search\Schema::has_fulltext_index() ) {
+		if ( ! in_array( Settings::site_search_mode(), [ 'hybrid', 'sparse' ], true ) || ! class_exists( '\WPVDB_Search\Schema' ) || \WPVDB_Search\Schema::has_fulltext_index() ) {
 			return;
 		}
 
-		if ( get_transient( 'wpvdb_native_search_fulltext_warning' ) ) {
+		if ( get_transient( 'wpvdb_site_search_fulltext_warning' ) ) {
 			return;
 		}
 
-		set_transient( 'wpvdb_native_search_fulltext_warning', '1', HOUR_IN_SECONDS );
+		set_transient( 'wpvdb_site_search_fulltext_warning', '1', HOUR_IN_SECONDS );
 
 		if ( class_exists( '\WPVDB\Logger' ) ) {
-			\WPVDB\Logger::warning( 'WPVDB Smart Search native search is running a sparse-capable mode without a FULLTEXT index; sparse ranking is unavailable until the index is ready.' );
+			\WPVDB\Logger::warning( 'WPVDB Smart Search site search is running a sparse-capable mode without a FULLTEXT index; sparse ranking is unavailable until the index is ready.' );
 		}
 	}
 }

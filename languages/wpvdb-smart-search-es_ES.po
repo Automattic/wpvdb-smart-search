@@ -15,8 +15,8 @@ msgstr ""
 "X-Domain: wpvdb-smart-search\n"
 
 #. Plugin Name of the plugin
-#: wpvdb-smart-search.php includes/class-settings.php:34
-#: includes/class-settings.php:35 includes/class-settings.php:240
+#: wpvdb-smart-search.php includes/class-settings.php:46
+#: includes/class-settings.php:47 includes/class-settings.php:292
 msgid "WPVDB Smart Search"
 msgstr "WPVDB Smart Search"
 
@@ -329,15 +329,20 @@ msgstr "Pregunta como un humano, no como una consulta SQL…"
 msgid "Too many requests, slow down."
 msgstr "Demasiadas solicitudes, por favor espera un momento."
 
-#: includes/class-settings.php:209
+#: includes/class-settings.php:36 includes/class-settings.php:37
+#: templates/page.php:64 src/App.jsx:262
+msgid "Smart Search"
+msgstr "Smart Search"
+
+#: includes/class-settings.php:259
 msgid "You do not have permission to manage Smart Search settings."
 msgstr ""
 
-#: includes/class-settings.php:244
-msgid "Native search cache cleared."
-msgstr "Caché de búsqueda nativa vaciada."
+#: includes/class-settings.php:296
+msgid "Site search cache cleared."
+msgstr "Caché de búsqueda del sitio vaciada."
 
-#: includes/class-settings.php:250
+#: includes/class-settings.php:302
 msgid ""
 "Sparse or hybrid mode is selected, but the FULLTEXT index is not ready. "
 "Sparse ranking will be unavailable until the index is ready."
@@ -346,56 +351,83 @@ msgstr ""
 "está listo. La ordenación dispersa no estará disponible hasta que el índice "
 "esté listo."
 
-#: includes/class-settings.php:258
-msgid "Native site search"
-msgstr "Búsqueda nativa del sitio"
+#: includes/class-settings.php:310
+msgid "Site search"
+msgstr "Búsqueda del sitio"
 
-#: includes/class-settings.php:262
+#: includes/class-settings.php:314
 msgid "Use semantic search for the main site search."
 msgstr "Usa búsqueda semántica para la búsqueda principal del sitio."
 
-#: includes/class-settings.php:267 src/Form.jsx:106
+#: includes/class-settings.php:319
+msgid "Post types"
+msgstr "Tipos de contenido"
+
+#: includes/class-settings.php:328
+msgid ""
+"No public post types are currently enabled in Vector DB content settings."
+msgstr ""
+"No hay tipos de contenido públicos habilitados actualmente en los ajustes de "
+"contenido de Vector DB."
+
+#: includes/class-settings.php:331
+msgid ""
+"Only post types enabled in Vector DB content settings can be used for "
+"semantic site search."
+msgstr ""
+"Solo los tipos de contenido habilitados en los ajustes de contenido de "
+"Vector DB se pueden usar para la búsqueda semántica del sitio."
+
+#: includes/class-settings.php:333
+msgid "Open Vector DB content settings."
+msgstr "Abrir los ajustes de contenido de Vector DB."
+
+#: includes/class-settings.php:339 src/Form.jsx:106
 msgid "Mode"
 msgstr "Modo"
 
-#: includes/class-settings.php:271 src/Form.jsx:19
+#: includes/class-settings.php:343 src/Form.jsx:19
 msgid "Dense"
 msgstr "Denso"
 
-#: includes/class-settings.php:272
+#: includes/class-settings.php:344
 msgid "Hybrid"
 msgstr "Híbrido"
 
-#: includes/class-settings.php:273 src/Form.jsx:27
+#: includes/class-settings.php:345 src/Form.jsx:27
 msgid "Sparse"
 msgstr "Disperso"
 
-#: includes/class-settings.php:285
+#: includes/class-settings.php:354
+msgid ""
+"Dense is the fastest default. Hybrid and sparse add keyword ranking when the "
+"FULLTEXT index is ready."
+msgstr ""
+"Denso es el valor predeterminado más rápido. Híbrido y disperso agregan "
+"ordenación por palabras clave cuando el índice FULLTEXT está listo."
+
+#: includes/class-settings.php:358
 msgid "Pool size"
 msgstr "Tamaño del grupo"
 
-#: includes/class-settings.php:291
+#: includes/class-settings.php:364
 msgid "Fallback"
 msgstr "Reserva"
 
-#: includes/class-settings.php:295
+#: includes/class-settings.php:368
 msgid ""
 "Fall back to default keyword search when semantic search returns no results."
 msgstr ""
 "Volver a la búsqueda por palabras clave predeterminada cuando la búsqueda "
 "semántica no devuelva resultados."
 
-#: includes/class-settings.php:300
-msgid "Post types"
-msgstr "Tipos de contenido"
+#: includes/class-settings.php:376
+msgid "Save Changes"
+msgstr "Guardar cambios"
 
-#: includes/class-settings.php:317
-msgid "Clear native search cache"
-msgstr "Vaciar caché de búsqueda nativa"
-
-#: templates/page.php:64 src/App.jsx:262
-msgid "Smart Search"
-msgstr "Smart Search"
+#: includes/class-settings.php:380
+msgid "Clear site search cache"
+msgstr "Vaciar caché de búsqueda del sitio"
 
 #: wpvdb-smart-search.php:50
 msgid "WPVDB Smart Search requires the WPVDB Search plugin to be active."

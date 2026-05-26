@@ -16,9 +16,9 @@ msgstr ""
 
 #. Plugin Name of the plugin
 #: wpvdb-smart-search.php
-#: includes/class-settings.php:34
-#: includes/class-settings.php:35
-#: includes/class-settings.php:240
+#: includes/class-settings.php:46
+#: includes/class-settings.php:47
+#: includes/class-settings.php:292
 msgid "WPVDB Smart Search"
 msgstr ""
 
@@ -326,68 +326,90 @@ msgstr ""
 msgid "Too many requests, slow down."
 msgstr ""
 
-#: includes/class-settings.php:209
+#: includes/class-settings.php:36
+#: includes/class-settings.php:37
+#: templates/page.php:64
+#: src/App.jsx:262
+msgid "Smart Search"
+msgstr ""
+
+#: includes/class-settings.php:259
 msgid "You do not have permission to manage Smart Search settings."
 msgstr ""
 
-#: includes/class-settings.php:244
-msgid "Native search cache cleared."
+#: includes/class-settings.php:296
+msgid "Site search cache cleared."
 msgstr ""
 
-#: includes/class-settings.php:250
+#: includes/class-settings.php:302
 msgid "Sparse or hybrid mode is selected, but the FULLTEXT index is not ready. Sparse ranking will be unavailable until the index is ready."
 msgstr ""
 
-#: includes/class-settings.php:258
-msgid "Native site search"
+#: includes/class-settings.php:310
+msgid "Site search"
 msgstr ""
 
-#: includes/class-settings.php:262
+#: includes/class-settings.php:314
 msgid "Use semantic search for the main site search."
 msgstr ""
 
-#: includes/class-settings.php:267
+#: includes/class-settings.php:319
+msgid "Post types"
+msgstr ""
+
+#: includes/class-settings.php:328
+msgid "No public post types are currently enabled in Vector DB content settings."
+msgstr ""
+
+#: includes/class-settings.php:331
+msgid "Only post types enabled in Vector DB content settings can be used for semantic site search."
+msgstr ""
+
+#: includes/class-settings.php:333
+msgid "Open Vector DB content settings."
+msgstr ""
+
+#: includes/class-settings.php:339
 #: src/Form.jsx:106
 msgid "Mode"
 msgstr ""
 
-#: includes/class-settings.php:271
+#: includes/class-settings.php:343
 #: src/Form.jsx:19
 msgid "Dense"
 msgstr ""
 
-#: includes/class-settings.php:272
+#: includes/class-settings.php:344
 msgid "Hybrid"
 msgstr ""
 
-#: includes/class-settings.php:273
+#: includes/class-settings.php:345
 #: src/Form.jsx:27
 msgid "Sparse"
 msgstr ""
 
-#: includes/class-settings.php:285
+#: includes/class-settings.php:354
+msgid "Dense is the fastest default. Hybrid and sparse add keyword ranking when the FULLTEXT index is ready."
+msgstr ""
+
+#: includes/class-settings.php:358
 msgid "Pool size"
 msgstr ""
 
-#: includes/class-settings.php:291
+#: includes/class-settings.php:364
 msgid "Fallback"
 msgstr ""
 
-#: includes/class-settings.php:295
+#: includes/class-settings.php:368
 msgid "Fall back to default keyword search when semantic search returns no results."
 msgstr ""
 
-#: includes/class-settings.php:300
-msgid "Post types"
+#: includes/class-settings.php:376
+msgid "Save Changes"
 msgstr ""
 
-#: includes/class-settings.php:317
-msgid "Clear native search cache"
-msgstr ""
-
-#: templates/page.php:64
-#: src/App.jsx:262
-msgid "Smart Search"
+#: includes/class-settings.php:380
+msgid "Clear site search cache"
 msgstr ""
 
 #: wpvdb-smart-search.php:50

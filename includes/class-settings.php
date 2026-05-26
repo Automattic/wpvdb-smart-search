@@ -14,22 +14,34 @@ defined( 'ABSPATH' ) || exit;
  */
 class Settings {
 	const OPTION_NAME          = 'wpvdb_smart_search_settings';
-	const CACHE_VERSION_OPTION = 'wpvdb_smart_search_native_cache_version';
+	const CACHE_VERSION_OPTION = 'wpvdb_smart_search_site_search_cache_version';
 	const PAGE_SLUG            = 'wpvdb-smart-search';
 
 	/**
 	 * Register hooks.
 	 */
 	public static function init(): void {
-		add_action( 'admin_menu', [ __CLASS__, 'register_page' ] );
+		add_action( 'admin_menu', [ __CLASS__, 'register_page' ], 20 );
 		add_action( 'admin_init', [ __CLASS__, 'register_settings' ] );
-		add_action( 'admin_post_wpvdb_smart_search_clear_native_cache', [ __CLASS__, 'handle_clear_native_cache' ] );
+		add_action( 'admin_post_wpvdb_smart_search_clear_site_search_cache', [ __CLASS__, 'handle_clear_site_search_cache' ] );
 	}
 
 	/**
 	 * Register the settings page.
 	 */
 	public static function register_page(): void {
+		if ( class_exists( '\WPVDB\Admin' ) ) {
+			add_submenu_page(
+				'wpvdb-dashboard',
+				__( 'Smart Search', 'wpvdb-smart-search' ),
+				__( 'Smart Search', 'wpvdb-smart-search' ),
+				'manage_options',
+				self::PAGE_SLUG,
+				[ __CLASS__, 'render_page' ]
+			);
+			return;
+		}
+
 		add_options_page(
 			__( 'WPVDB Smart Search', 'wpvdb-smart-search' ),
 			__( 'WPVDB Smart Search', 'wpvdb-smart-search' ),
@@ -61,11 +73,11 @@ class Settings {
 	 */
 	public static function defaults(): array {
 		return [
-			'native_enabled'  => false,
-			'native_mode'     => 'dense',
-			'native_pool'     => 50,
-			'native_fallback' => true,
-			'native_types'    => [ 'post', 'page' ],
+			'site_search_enabled'  => false,
+			'site_search_mode'     => 'dense',
+			'site_search_pool'     => 50,
+			'site_search_fallback' => true,
+			'site_search_types'    => self::indexed_post_type_keys(),
 		];
 	}
 
@@ -84,63 +96,65 @@ class Settings {
 	}
 
 	/**
-	 * Whether native WordPress search replacement is enabled.
+	 * Whether site search replacement is enabled.
 	 */
-	public static function native_enabled(): bool {
+	public static function site_search_enabled(): bool {
 		$settings = self::get();
-		return ! empty( $settings['native_enabled'] );
+		return ! empty( $settings['site_search_enabled'] );
 	}
 
 	/**
-	 * Native search mode.
+	 * Site search mode.
 	 */
-	public static function native_mode(): string {
+	public static function site_search_mode(): string {
 		$settings = self::get();
-		return (string) $settings['native_mode'];
+		return (string) $settings['site_search_mode'];
 	}
 
 	/**
-	 * Native search pool size.
+	 * Site search pool size.
 	 */
-	public static function native_pool(): int {
+	public static function site_search_pool(): int {
 		$settings = self::get();
-		return (int) $settings['native_pool'];
+		return (int) $settings['site_search_pool'];
 	}
 
 	/**
-	 * Whether native search should fall back to keyword search on empty ranker results.
+	 * Whether site search should fall back to keyword search on empty ranker results.
 	 */
-	public static function native_fallback_enabled(): bool {
+	public static function site_search_fallback_enabled(): bool {
 		$settings = self::get();
-		return ! empty( $settings['native_fallback'] );
+		return ! empty( $settings['site_search_fallback'] );
 	}
 
 	/**
-	 * Post types configured for native search.
+	 * Post types configured for site search.
 	 *
 	 * @return list<string>
 	 */
-	public static function native_post_types(): array {
+	public static function site_search_post_types(): array {
 		$settings = self::get();
-		$types    = isset( $settings['native_types'] ) && is_array( $settings['native_types'] ) ? $settings['native_types'] : [];
+		$allowed  = self::indexed_post_type_keys();
+		$types    = isset( $settings['site_search_types'] ) && is_array( $settings['site_search_types'] ) ? $settings['site_search_types'] : $allowed;
 		$types    = array_values( array_filter( array_map( 'sanitize_key', $types ) ) );
+		$types    = array_values( array_intersect( $types, $allowed ) );
 
-		return empty( $types ) ? [ 'post', 'page' ] : $types;
+		return empty( $types ) ? $allowed : $types;
 	}
 
 	/**
-	 * Current native search cache version.
+	 * Current site search cache version.
 	 */
-	public static function native_cache_version(): int {
+	public static function site_search_cache_version(): int {
 		$version = (int) get_option( self::CACHE_VERSION_OPTION, 1 );
 		return max( 1, $version );
 	}
 
 	/**
-	 * Bump the native search cache version.
+	 * Bump the site search cache version.
 	 */
-	public static function bump_native_cache_version(): void {
-		update_option( self::CACHE_VERSION_OPTION, self::native_cache_version() + 1, false );
+	public static function bump_site_search_cache_version(): void {
+		update_option( self::CACHE_VERSION_OPTION, self::site_search_cache_version() + 1, false );
 	}
 
 	/**
@@ -154,7 +168,7 @@ class Settings {
 		$new = self::sanitize_values( is_array( $value ) ? $value : [], true );
 
 		if ( $old !== $new ) {
-			self::bump_native_cache_version();
+			self::bump_site_search_cache_version();
 		}
 
 		return $new;
@@ -170,23 +184,23 @@ class Settings {
 	private static function sanitize_values( array $value, bool $saving = false ): array {
 		$defaults = self::defaults();
 		$modes    = [ 'dense', 'sparse', 'hybrid' ];
-		$mode     = isset( $value['native_mode'] ) ? sanitize_key( (string) $value['native_mode'] ) : (string) $defaults['native_mode'];
-		$pool     = isset( $value['native_pool'] ) ? (int) $value['native_pool'] : (int) $defaults['native_pool'];
-		$types    = isset( $value['native_types'] ) && is_array( $value['native_types'] ) ? $value['native_types'] : $defaults['native_types'];
+		$mode     = isset( $value['site_search_mode'] ) ? sanitize_key( (string) $value['site_search_mode'] ) : (string) $defaults['site_search_mode'];
+		$pool     = isset( $value['site_search_pool'] ) ? (int) $value['site_search_pool'] : (int) $defaults['site_search_pool'];
+		$types    = isset( $value['site_search_types'] ) && is_array( $value['site_search_types'] ) ? $value['site_search_types'] : $defaults['site_search_types'];
 		$types    = array_values( array_filter( array_map( 'sanitize_key', (array) $types ) ) );
-		$types    = array_values( array_intersect( $types, self::public_post_type_keys() ) );
+		$types    = array_values( array_intersect( $types, self::indexed_post_type_keys() ) );
 
 		return [
-			'native_enabled'  => array_key_exists( 'native_enabled', $value ) ? ! empty( $value['native_enabled'] ) : ( $saving ? false : (bool) $defaults['native_enabled'] ),
-			'native_mode'     => in_array( $mode, $modes, true ) ? $mode : (string) $defaults['native_mode'],
-			'native_pool'     => max( 10, min( 200, $pool ) ),
-			'native_fallback' => array_key_exists( 'native_fallback', $value ) ? ! empty( $value['native_fallback'] ) : ( $saving ? false : (bool) $defaults['native_fallback'] ),
-			'native_types'    => empty( $types ) ? $defaults['native_types'] : $types,
+			'site_search_enabled'  => array_key_exists( 'site_search_enabled', $value ) ? ! empty( $value['site_search_enabled'] ) : ( $saving ? false : (bool) $defaults['site_search_enabled'] ),
+			'site_search_mode'     => in_array( $mode, $modes, true ) ? $mode : (string) $defaults['site_search_mode'],
+			'site_search_pool'     => max( 10, min( 200, $pool ) ),
+			'site_search_fallback' => array_key_exists( 'site_search_fallback', $value ) ? ! empty( $value['site_search_fallback'] ) : ( $saving ? false : (bool) $defaults['site_search_fallback'] ),
+			'site_search_types'    => empty( $types ) ? $defaults['site_search_types'] : $types,
 		];
 	}
 
 	/**
-	 * Return public post type keys allowed for native search.
+	 * Return public post type keys allowed for site search.
 	 *
 	 * @return list<string>
 	 */
@@ -202,23 +216,59 @@ class Settings {
 	}
 
 	/**
-	 * Handle the clear native search cache action.
+	 * Return public post types currently configured for wpvdb embedding.
+	 *
+	 * @return list<string>
 	 */
-	public static function handle_clear_native_cache(): void {
+	private static function indexed_post_type_keys(): array {
+		$public_types = self::public_post_type_keys();
+		$wpvdb_types  = self::wpvdb_post_type_keys();
+
+		if ( null === $wpvdb_types ) {
+			$wpvdb_types = [ 'post', 'page' ];
+		}
+
+		$types = array_values( array_intersect( $wpvdb_types, $public_types ) );
+
+		return $types;
+	}
+
+	/**
+	 * Return post types from wpvdb's content settings.
+	 *
+	 * @return list<string>|null
+	 */
+	private static function wpvdb_post_type_keys(): ?array {
+		$settings = get_option( 'wpvdb_settings', null );
+		if ( is_array( $settings ) ) {
+			if ( array_key_exists( 'post_types', $settings ) && is_array( $settings['post_types'] ) ) {
+				return array_values( array_filter( array_map( 'sanitize_key', $settings['post_types'] ) ) );
+			}
+
+			return [ 'post' ];
+		}
+
+		return null;
+	}
+
+	/**
+	 * Handle the clear site search cache action.
+	 */
+	public static function handle_clear_site_search_cache(): void {
 		if ( ! current_user_can( 'manage_options' ) ) {
 			wp_die( esc_html__( 'You do not have permission to manage Smart Search settings.', 'wpvdb-smart-search' ) );
 		}
 
-		check_admin_referer( 'wpvdb_smart_search_clear_native_cache' );
-		self::bump_native_cache_version();
+		check_admin_referer( 'wpvdb_smart_search_clear_site_search_cache' );
+		self::bump_site_search_cache_version();
 
 		wp_safe_redirect(
 			add_query_arg(
 				[
-					'page'                 => self::PAGE_SLUG,
-					'native-cache-cleared' => '1',
+					'page'                      => self::PAGE_SLUG,
+					'site-search-cache-cleared' => '1',
 				],
-				admin_url( 'options-general.php' )
+				self::settings_page_base_url()
 			)
 		);
 		exit;
@@ -232,35 +282,57 @@ class Settings {
 			return;
 		}
 
-		$settings       = self::get();
-		$public_types   = get_post_types( [ 'public' => true ], 'objects' );
-		$selected_types = self::native_post_types();
+		$settings            = self::get();
+		$public_types        = get_post_types( [ 'public' => true ], 'objects' );
+		$indexed_types       = self::indexed_post_type_keys();
+		$selected_types      = self::site_search_post_types();
+		$indexed_type_labels = array_intersect_key( is_array( $public_types ) ? $public_types : [], array_flip( $indexed_types ) );
 		?>
 		<div class="wrap">
 			<h1><?php esc_html_e( 'WPVDB Smart Search', 'wpvdb-smart-search' ); ?></h1>
 
-			<?php if ( isset( $_GET['native-cache-cleared'] ) ) : // phpcs:ignore WordPress.Security.NonceVerification.Recommended ?>
+			<?php if ( isset( $_GET['site-search-cache-cleared'] ) ) : // phpcs:ignore WordPress.Security.NonceVerification.Recommended ?>
 				<div class="notice notice-success is-dismissible">
-					<p><?php esc_html_e( 'Native search cache cleared.', 'wpvdb-smart-search' ); ?></p>
+					<p><?php esc_html_e( 'Site search cache cleared.', 'wpvdb-smart-search' ); ?></p>
 				</div>
 			<?php endif; ?>
 
-			<?php if ( in_array( $settings['native_mode'], [ 'hybrid', 'sparse' ], true ) && class_exists( '\WPVDB_Search\Schema' ) && ! \WPVDB_Search\Schema::has_fulltext_index() ) : ?>
+			<?php if ( in_array( $settings['site_search_mode'], [ 'hybrid', 'sparse' ], true ) && class_exists( '\WPVDB_Search\Schema' ) && ! \WPVDB_Search\Schema::has_fulltext_index() ) : ?>
 				<div class="notice notice-warning">
 					<p><?php esc_html_e( 'Sparse or hybrid mode is selected, but the FULLTEXT index is not ready. Sparse ranking will be unavailable until the index is ready.', 'wpvdb-smart-search' ); ?></p>
 				</div>
 			<?php endif; ?>
 
-			<form method="post" action="options.php">
+			<form id="wpvdb-smart-search-settings-form" method="post" action="options.php">
 				<?php settings_fields( self::PAGE_SLUG ); ?>
 				<table class="form-table" role="presentation">
 					<tr>
-						<th scope="row"><?php esc_html_e( 'Native site search', 'wpvdb-smart-search' ); ?></th>
+						<th scope="row"><?php esc_html_e( 'Site search', 'wpvdb-smart-search' ); ?></th>
 						<td>
 							<label>
-								<input type="checkbox" name="<?php echo esc_attr( self::OPTION_NAME ); ?>[native_enabled]" value="1" <?php checked( $settings['native_enabled'] ); ?> />
+								<input type="checkbox" name="<?php echo esc_attr( self::OPTION_NAME ); ?>[site_search_enabled]" value="1" <?php checked( $settings['site_search_enabled'] ); ?> />
 								<?php esc_html_e( 'Use semantic search for the main site search.', 'wpvdb-smart-search' ); ?>
 							</label>
+						</td>
+					</tr>
+					<tr>
+						<th scope="row"><?php esc_html_e( 'Post types', 'wpvdb-smart-search' ); ?></th>
+						<td>
+							<?php foreach ( $indexed_type_labels as $type => $obj ) : ?>
+								<label>
+									<input type="checkbox" name="<?php echo esc_attr( self::OPTION_NAME ); ?>[site_search_types][]" value="<?php echo esc_attr( (string) $type ); ?>" <?php checked( in_array( (string) $type, $selected_types, true ) ); ?> />
+									<?php echo esc_html( $obj->labels->singular_name ?? $type ); ?>
+								</label><br />
+							<?php endforeach; ?>
+							<?php if ( empty( $indexed_type_labels ) ) : ?>
+								<p><?php esc_html_e( 'No public post types are currently enabled in Vector DB content settings.', 'wpvdb-smart-search' ); ?></p>
+							<?php endif; ?>
+							<p class="description">
+								<?php esc_html_e( 'Only post types enabled in Vector DB content settings can be used for semantic site search.', 'wpvdb-smart-search' ); ?>
+								<?php if ( class_exists( '\WPVDB\Admin' ) ) : ?>
+									<a href="<?php echo esc_url( self::wpvdb_content_settings_url() ); ?>"><?php esc_html_e( 'Open Vector DB content settings.', 'wpvdb-smart-search' ); ?></a>
+								<?php endif; ?>
+							</p>
 						</td>
 					</tr>
 					<tr>
@@ -275,48 +347,64 @@ class Settings {
 							foreach ( $modes as $mode => $label ) :
 								?>
 								<label>
-									<input type="radio" name="<?php echo esc_attr( self::OPTION_NAME ); ?>[native_mode]" value="<?php echo esc_attr( $mode ); ?>" <?php checked( $settings['native_mode'], $mode ); ?> />
+									<input type="radio" name="<?php echo esc_attr( self::OPTION_NAME ); ?>[site_search_mode]" value="<?php echo esc_attr( $mode ); ?>" <?php checked( $settings['site_search_mode'], $mode ); ?> />
 									<?php echo esc_html( $label ); ?>
 								</label><br />
 							<?php endforeach; ?>
+							<p class="description"><?php esc_html_e( 'Dense is the fastest default. Hybrid and sparse add keyword ranking when the FULLTEXT index is ready.', 'wpvdb-smart-search' ); ?></p>
 						</td>
 					</tr>
 					<tr>
-						<th scope="row"><label for="wpvdb-smart-search-native-pool"><?php esc_html_e( 'Pool size', 'wpvdb-smart-search' ); ?></label></th>
+						<th scope="row"><label for="wpvdb-smart-search-site-search-pool"><?php esc_html_e( 'Pool size', 'wpvdb-smart-search' ); ?></label></th>
 						<td>
-							<input id="wpvdb-smart-search-native-pool" type="number" min="10" max="200" name="<?php echo esc_attr( self::OPTION_NAME ); ?>[native_pool]" value="<?php echo esc_attr( (string) $settings['native_pool'] ); ?>" />
+							<input id="wpvdb-smart-search-site-search-pool" type="number" min="10" max="200" name="<?php echo esc_attr( self::OPTION_NAME ); ?>[site_search_pool]" value="<?php echo esc_attr( (string) $settings['site_search_pool'] ); ?>" />
 						</td>
 					</tr>
 					<tr>
 						<th scope="row"><?php esc_html_e( 'Fallback', 'wpvdb-smart-search' ); ?></th>
 						<td>
 							<label>
-								<input type="checkbox" name="<?php echo esc_attr( self::OPTION_NAME ); ?>[native_fallback]" value="1" <?php checked( $settings['native_fallback'] ); ?> />
+								<input type="checkbox" name="<?php echo esc_attr( self::OPTION_NAME ); ?>[site_search_fallback]" value="1" <?php checked( $settings['site_search_fallback'] ); ?> />
 								<?php esc_html_e( 'Fall back to default keyword search when semantic search returns no results.', 'wpvdb-smart-search' ); ?>
 							</label>
 						</td>
 					</tr>
-					<tr>
-						<th scope="row"><?php esc_html_e( 'Post types', 'wpvdb-smart-search' ); ?></th>
-						<td>
-							<?php foreach ( $public_types as $type => $obj ) : ?>
-								<label>
-									<input type="checkbox" name="<?php echo esc_attr( self::OPTION_NAME ); ?>[native_types][]" value="<?php echo esc_attr( (string) $type ); ?>" <?php checked( in_array( (string) $type, $selected_types, true ) ); ?> />
-									<?php echo esc_html( $obj->labels->singular_name ?? $type ); ?>
-								</label><br />
-							<?php endforeach; ?>
-						</td>
-					</tr>
 				</table>
-				<?php submit_button(); ?>
 			</form>
 
-			<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
-				<?php wp_nonce_field( 'wpvdb_smart_search_clear_native_cache' ); ?>
-				<input type="hidden" name="action" value="wpvdb_smart_search_clear_native_cache" />
-				<?php submit_button( __( 'Clear native search cache', 'wpvdb-smart-search' ), 'secondary', 'submit', false ); ?>
-			</form>
+			<div style="display: flex; gap: 8px; align-items: center; margin-top: 20px;">
+				<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
+					<?php wp_nonce_field( 'wpvdb_smart_search_clear_site_search_cache' ); ?>
+					<input type="hidden" name="action" value="wpvdb_smart_search_clear_site_search_cache" />
+					<?php submit_button( __( 'Clear site search cache', 'wpvdb-smart-search' ), 'secondary', 'submit', false ); ?>
+				</form>
+				<?php submit_button( __( 'Save Changes', 'wpvdb-smart-search' ), 'primary', 'submit', false, [ 'form' => 'wpvdb-smart-search-settings-form' ] ); ?>
+			</div>
 		</div>
 		<?php
+	}
+
+	/**
+	 * Return the Vector DB content settings URL.
+	 */
+	private static function wpvdb_content_settings_url(): string {
+		return add_query_arg(
+			[
+				'page'    => 'wpvdb-settings',
+				'section' => 'content',
+			],
+			admin_url( 'admin.php' )
+		);
+	}
+
+	/**
+	 * Return the admin page base URL for redirects.
+	 */
+	private static function settings_page_base_url(): string {
+		if ( class_exists( '\WPVDB\Admin' ) ) {
+			return admin_url( 'admin.php' );
+		}
+
+		return admin_url( 'options-general.php' );
 	}
 }

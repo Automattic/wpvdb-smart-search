@@ -281,5 +281,5 @@ namespace WPVDB {
 namespace {
 	require_once dirname( __DIR__ ) . '/includes/class-template.php';
 	require_once dirname( __DIR__ ) . '/includes/class-settings.php';
-	require_once dirname( __DIR__ ) . '/includes/surfaces/class-native-search.php';
+	require_once dirname( __DIR__ ) . '/includes/surfaces/class-site-search.php';
 }

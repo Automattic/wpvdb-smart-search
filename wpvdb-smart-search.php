@@ -30,7 +30,7 @@ require_once __DIR__ . '/includes/class-content.php';
 require_once __DIR__ . '/includes/class-rest.php';
 require_once __DIR__ . '/includes/class-settings.php';
 require_once __DIR__ . '/includes/class-template.php';
-require_once __DIR__ . '/includes/surfaces/class-native-search.php';
+require_once __DIR__ . '/includes/surfaces/class-site-search.php';
 if ( defined( 'WP_CLI' ) && WP_CLI ) {
 	require_once __DIR__ . '/includes/class-cli.php';
 }
@@ -70,7 +70,7 @@ add_action(
 
 		Rest::init();
 		Template::init();
-		Surfaces\Native_Search::init();
+		Surfaces\Site_Search::init();
 		if ( defined( 'WP_CLI' ) && WP_CLI && class_exists( __NAMESPACE__ . '\\CLI' ) ) {
 			CLI::init();
 		}
