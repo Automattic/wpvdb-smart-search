@@ -186,6 +186,7 @@ final class NativeSearchTest extends TestCase {
 
 		self::assertNull( $posts, 'Search errors should fall through to keyword search when fallback is enabled.' );
 		self::assertSame( 1, $GLOBALS['wpvdb_smart_search_test']['search_calls'], 'The search service should be called before the fallback decision.' );
+		self::assertSame( '', $query->get( 'no_found_rows' ), 'Fallback queries should keep their original pagination behavior.' );
 	}
 
 	/**
@@ -203,6 +204,7 @@ final class NativeSearchTest extends TestCase {
 		$posts = Native_Search::pre_query( null, $query );
 
 		self::assertSame( [], $posts, 'Search errors should return zero results when fallback is disabled.' );
+		self::assertTrue( $query->get( 'no_found_rows' ), 'Short-circuited error results should not ask WordPress for SQL found rows.' );
 		self::assertSame( 0, $query->found_posts, 'Fallback-disabled search errors should set zero found posts.' );
 		self::assertSame( 0, $query->max_num_pages, 'Fallback-disabled search errors should set zero pages.' );
 	}

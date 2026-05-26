@@ -60,8 +60,6 @@ class Native_Search {
 			return null;
 		}
 
-		$query->set( 'no_found_rows', true );
-
 		$search = trim( (string) $query->get( 's' ) );
 		if ( '' === $search ) {
 			return null;
@@ -95,6 +93,8 @@ class Native_Search {
 
 			set_transient( $cache_key, $candidates, 5 * MINUTE_IN_SECONDS );
 		}
+
+		$query->set( 'no_found_rows', true );
 
 		$readable = self::readable_ids( $candidates, $post_types, $statuses );
 		self::set_pagination( $query, count( $readable ) );
@@ -394,6 +394,7 @@ class Native_Search {
 			return null;
 		}
 
+		$query->set( 'no_found_rows', true );
 		self::set_pagination( $query, 0 );
 
 		return [];
