@@ -16,6 +16,9 @@ msgstr ""
 
 #. Plugin Name of the plugin
 #: wpvdb-smart-search.php
+#: includes/class-settings.php:46
+#: includes/class-settings.php:47
+#: includes/class-settings.php:292
 msgid "WPVDB Smart Search"
 msgstr ""
 
@@ -26,7 +29,7 @@ msgstr ""
 
 #. Description of the plugin
 #: wpvdb-smart-search.php
-msgid "Adds a public Smart Search page and REST endpoint for wpvdb dense, sparse, and hybrid search."
+msgid "Adds a public Smart Search page, REST endpoint, and optional site search replacement for wpvdb dense, sparse, and hybrid search."
 msgstr ""
 
 #. Author of the plugin
@@ -323,12 +326,93 @@ msgstr ""
 msgid "Too many requests, slow down."
 msgstr ""
 
+#: includes/class-settings.php:36
+#: includes/class-settings.php:37
 #: templates/page.php:64
 #: src/App.jsx:262
 msgid "Smart Search"
 msgstr ""
 
-#: wpvdb-smart-search.php:48
+#: includes/class-settings.php:259
+msgid "You do not have permission to manage Smart Search settings."
+msgstr ""
+
+#: includes/class-settings.php:296
+msgid "Site search cache cleared."
+msgstr ""
+
+#: includes/class-settings.php:302
+msgid "Sparse or hybrid mode is selected, but the FULLTEXT index is not ready. Sparse ranking will be unavailable until the index is ready."
+msgstr ""
+
+#: includes/class-settings.php:310
+msgid "Site search"
+msgstr ""
+
+#: includes/class-settings.php:314
+msgid "Use semantic search for the main site search."
+msgstr ""
+
+#: includes/class-settings.php:319
+msgid "Post types"
+msgstr ""
+
+#: includes/class-settings.php:328
+msgid "No public post types are currently enabled in Vector DB content settings."
+msgstr ""
+
+#: includes/class-settings.php:331
+msgid "Only post types enabled in Vector DB content settings can be used for semantic site search."
+msgstr ""
+
+#: includes/class-settings.php:333
+msgid "Open Vector DB content settings."
+msgstr ""
+
+#: includes/class-settings.php:339
+#: src/Form.jsx:106
+msgid "Mode"
+msgstr ""
+
+#: includes/class-settings.php:343
+#: src/Form.jsx:19
+msgid "Dense"
+msgstr ""
+
+#: includes/class-settings.php:344
+msgid "Hybrid"
+msgstr ""
+
+#: includes/class-settings.php:345
+#: src/Form.jsx:27
+msgid "Sparse"
+msgstr ""
+
+#: includes/class-settings.php:354
+msgid "Dense is the fastest default. Hybrid and sparse add keyword ranking when the FULLTEXT index is ready."
+msgstr ""
+
+#: includes/class-settings.php:358
+msgid "Pool size"
+msgstr ""
+
+#: includes/class-settings.php:364
+msgid "Fallback"
+msgstr ""
+
+#: includes/class-settings.php:368
+msgid "Fall back to default keyword search when semantic search returns no results."
+msgstr ""
+
+#: includes/class-settings.php:376
+msgid "Save Changes"
+msgstr ""
+
+#: includes/class-settings.php:380
+msgid "Clear site search cache"
+msgstr ""
+
+#: wpvdb-smart-search.php:50
 msgid "WPVDB Smart Search requires the WPVDB Search plugin to be active."
 msgstr ""
 
@@ -382,16 +466,8 @@ msgstr ""
 msgid "Runs both dense and sparse, merges via Reciprocal Rank Fusion. Best default."
 msgstr ""
 
-#: src/Form.jsx:19
-msgid "Dense"
-msgstr ""
-
 #: src/Form.jsx:20
 msgid "Semantic vector search via VEC_DISTANCE_COSINE. Matches by meaning; weaker on exact keywords."
-msgstr ""
-
-#: src/Form.jsx:27
-msgid "Sparse"
 msgstr ""
 
 #: src/Form.jsx:28
@@ -412,10 +488,6 @@ msgstr ""
 
 #: src/Form.jsx:100
 msgid "Surprise Me!"
-msgstr ""
-
-#: src/Form.jsx:106
-msgid "Mode"
 msgstr ""
 
 #: src/Form.jsx:112

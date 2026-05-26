@@ -2,7 +2,7 @@
 /**
  * Plugin Name:      WPVDB Smart Search
  * Plugin URI:       https://github.com/rbcorrales/wpvdb-smart-search
- * Description:      Adds a public Smart Search page and REST endpoint for wpvdb dense, sparse, and hybrid search.
+ * Description:      Adds a public Smart Search page, REST endpoint, and optional site search replacement for wpvdb dense, sparse, and hybrid search.
  * Version:          0.1.2
  * Author:           Automattic, Ramon Corrales
  * Author URI:       https://automattic.com/
@@ -28,7 +28,9 @@ define( 'WPVDB_SMART_SEARCH_URL', plugin_dir_url( __FILE__ ) );
 
 require_once __DIR__ . '/includes/class-content.php';
 require_once __DIR__ . '/includes/class-rest.php';
+require_once __DIR__ . '/includes/class-settings.php';
 require_once __DIR__ . '/includes/class-template.php';
+require_once __DIR__ . '/includes/surfaces/class-site-search.php';
 if ( defined( 'WP_CLI' ) && WP_CLI ) {
 	require_once __DIR__ . '/includes/class-cli.php';
 }
@@ -59,6 +61,8 @@ add_action(
 			dirname( plugin_basename( __FILE__ ) ) . '/languages'
 		);
 
+		Settings::init();
+
 		if ( ! class_exists( '\WPVDB_Search\Search' ) ) {
 			add_action( 'admin_notices', __NAMESPACE__ . '\\dependency_notice' );
 			return;
@@ -66,6 +70,7 @@ add_action(
 
 		Rest::init();
 		Template::init();
+		Surfaces\Site_Search::init();
 		if ( defined( 'WP_CLI' ) && WP_CLI && class_exists( __NAMESPACE__ . '\\CLI' ) ) {
 			CLI::init();
 		}
