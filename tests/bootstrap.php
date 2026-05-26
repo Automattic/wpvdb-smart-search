@@ -6,7 +6,11 @@ namespace {
 	define( 'WPVDB_SMART_SEARCH_DIR', dirname( __DIR__ ) );
 	define( 'WPVDB_SMART_SEARCH_URL', 'https://example.test/wp-content/plugins/wpvdb-smart-search/' );
 	define( 'WPVDB_SMART_SEARCH_FILE', dirname( __DIR__ ) . '/wpvdb-smart-search.php' );
-	define( 'WPVDB_SMART_SEARCH_VERSION', '0.1.1' );
+	$plugin_file = (string) file_get_contents( WPVDB_SMART_SEARCH_FILE );
+	if ( ! preg_match( '/^[ \t]*\*[ \t]+Version:[ \t]*(\S+)/m', $plugin_file, $version_match ) ) {
+		throw new RuntimeException( 'Unable to read WPVDB Smart Search plugin version.' );
+	}
+	define( 'WPVDB_SMART_SEARCH_VERSION', $version_match[1] );
 	define( 'MINUTE_IN_SECONDS', 60 );
 	define( 'HOUR_IN_SECONDS', 3600 );
 

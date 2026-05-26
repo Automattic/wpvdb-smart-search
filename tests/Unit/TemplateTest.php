@@ -156,7 +156,7 @@ final class TemplateTest extends TestCase {
 		$reflection = new ReflectionMethod( Template::class, 'asset_url' );
 
 		self::assertSame(
-			'https://example.test/wp-content/plugins/wpvdb-smart-search/dist/missing.js?v=0.1.1',
+			'https://example.test/wp-content/plugins/wpvdb-smart-search/dist/missing.js?v=' . WPVDB_SMART_SEARCH_VERSION,
 			$reflection->invoke( null, 'dist/missing.js' ),
 			'Missing assets should use the plugin version cache buster.'
 		);
