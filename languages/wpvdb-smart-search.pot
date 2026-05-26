@@ -16,6 +16,9 @@ msgstr ""
 
 #. Plugin Name of the plugin
 #: wpvdb-smart-search.php
+#: includes/class-settings.php:34
+#: includes/class-settings.php:35
+#: includes/class-settings.php:223
 msgid "WPVDB Smart Search"
 msgstr ""
 
@@ -323,12 +326,57 @@ msgstr ""
 msgid "Too many requests, slow down."
 msgstr ""
 
+#: includes/class-settings.php:192
+msgid "You do not have permission to manage Smart Search settings."
+msgstr ""
+
+#: includes/class-settings.php:227
+msgid "Native search cache cleared."
+msgstr ""
+
+#: includes/class-settings.php:233
+msgid "Hybrid mode is selected, but the FULLTEXT index is not ready. Native search will behave like dense search until sparse search is ready."
+msgstr ""
+
+#: includes/class-settings.php:241
+msgid "Native site search"
+msgstr ""
+
+#: includes/class-settings.php:245
+msgid "Use semantic search for the main site search."
+msgstr ""
+
+#: includes/class-settings.php:250
+#: src/Form.jsx:106
+msgid "Mode"
+msgstr ""
+
+#: includes/class-settings.php:261
+msgid "Pool size"
+msgstr ""
+
+#: includes/class-settings.php:267
+msgid "Fallback"
+msgstr ""
+
+#: includes/class-settings.php:271
+msgid "Fall back to default keyword search when semantic search returns no results."
+msgstr ""
+
+#: includes/class-settings.php:276
+msgid "Post types"
+msgstr ""
+
+#: includes/class-settings.php:293
+msgid "Clear native search cache"
+msgstr ""
+
 #: templates/page.php:64
 #: src/App.jsx:262
 msgid "Smart Search"
 msgstr ""
 
-#: wpvdb-smart-search.php:48
+#: wpvdb-smart-search.php:50
 msgid "WPVDB Smart Search requires the WPVDB Search plugin to be active."
 msgstr ""
 
@@ -412,10 +460,6 @@ msgstr ""
 
 #: src/Form.jsx:100
 msgid "Surprise Me!"
-msgstr ""
-
-#: src/Form.jsx:106
-msgid "Mode"
 msgstr ""
 
 #: src/Form.jsx:112

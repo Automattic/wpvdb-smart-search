@@ -7,6 +7,8 @@
 
 Demo search UI and REST adapter for dense, sparse, and hybrid search over content indexed by [`wpvdb`](https://github.com/Automattic/wpvdb).
 
+The plugin also includes an optional native site search surface. When enabled in Settings, eligible front end `?s=` main queries are answered with ranked semantic results from `wpvdb-search`, while unsupported queries fall through to WordPress search. Native site search defaults to dense mode; hybrid remains available for sites that want sparse plus dense ranking.
+
 ![WPVDB Smart Search interface](docs/screenshots/screenshot.png)
 
 ## Requirements
@@ -20,6 +22,7 @@ Demo search UI and REST adapter for dense, sparse, and hybrid search over conten
 ## What this plugin owns
 
 - The `/smart-search/` public page.
+- Optional native WordPress site search replacement for eligible `?s=` queries.
 - The `wpvdb-smart-search/v1` REST namespace.
 - The React UI, browser assets, and REST adapter.
 - Demo examples, placeholders, and UI copy.
