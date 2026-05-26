@@ -48,9 +48,19 @@ class Native_Search {
 	 * @return mixed
 	 */
 	public static function pre_query( mixed $posts, \WP_Query $query ): mixed {
+		if ( null !== $posts ) {
+			return $posts;
+		}
+
 		if ( ! $query->get( self::QUERY_FLAG ) ) {
 			return $posts;
 		}
+
+		if ( ! self::should_handle( $query ) ) {
+			return null;
+		}
+
+		$query->set( 'no_found_rows', true );
 
 		$search = trim( (string) $query->get( 's' ) );
 		if ( '' === $search ) {
@@ -60,11 +70,11 @@ class Native_Search {
 		$pool       = Settings::native_pool();
 		$post_types = self::query_post_types( $query );
 		$statuses   = self::query_post_status( $query );
-		$cache_key  = self::cache_key( $search, $post_types, $statuses, $pool );
+		$cache_key  = self::cache_key( $search, $post_types, $pool );
 		$candidates = get_transient( $cache_key );
 
 		if ( ! is_array( $candidates ) ) {
-			self::maybe_log_hybrid_without_fulltext();
+			self::maybe_log_fulltext_mode_without_fulltext();
 			$candidates = \WPVDB_Search\Search::post_ids(
 				[
 					'query'     => $search,
@@ -75,7 +85,7 @@ class Native_Search {
 			);
 
 			if ( is_wp_error( $candidates ) ) {
-				return null;
+				return self::empty_ranker_result( $query );
 			}
 
 			$candidates = array_values( array_filter( array_map( 'absint', $candidates ) ) );
@@ -122,7 +132,12 @@ class Native_Search {
 	 * @param \WP_Query $query Query object.
 	 */
 	private static function should_handle( \WP_Query $query ): bool {
-		if ( is_admin() || ! Settings::native_enabled() || ! class_exists( '\WPVDB_Search\Search' ) ) {
+		if (
+			is_admin()
+			|| ! Settings::native_enabled()
+			|| ! class_exists( '\WPVDB_Search\Search' )
+			|| ! method_exists( '\WPVDB_Search\Search', 'post_ids' )
+		) {
 			return false;
 		}
 
@@ -160,22 +175,55 @@ class Native_Search {
 	 * @param \WP_Query $query Query object.
 	 */
 	private static function has_unsupported_constraints( \WP_Query $query ): bool {
+		if ( $query->get( 'nopaging' ) || -1 === (int) $query->get( 'posts_per_page' ) ) {
+			return true;
+		}
+
 		$unsupported = [
-			'tax_query',
-			'date_query',
-			'meta_query',
+			'attachment_id',
 			'author',
-			'author_name',
 			'author__in',
 			'author__not_in',
-			'year',
-			'monthnum',
+			'author_name',
+			'cat',
+			'category__and',
+			'category__in',
+			'category__not_in',
+			'category_name',
+			'date_query',
 			'day',
+			'exact',
+			'has_password',
 			'hour',
-			'minute',
-			'second',
 			'm',
+			'meta_query',
+			'minute',
+			'monthnum',
+			'name',
+			'offset',
+			'p',
+			'page_id',
+			'pagename',
+			'post__in',
+			'post__not_in',
+			'post_name__in',
+			'post_parent',
+			'post_parent__in',
+			'post_parent__not_in',
+			'post_password',
+			'search_columns',
+			'second',
+			'sentence',
+			'tag',
+			'tag__and',
+			'tag__in',
+			'tag__not_in',
+			'tag_id',
+			'tag_slug__and',
+			'tag_slug__in',
+			'tax_query',
 			'w',
+			'year',
 		];
 
 		foreach ( $unsupported as $key ) {
@@ -250,20 +298,16 @@ class Native_Search {
 	 *
 	 * @param string $search     Search query.
 	 * @param array  $post_types Post types.
-	 * @param array  $statuses   Post statuses.
 	 * @param int    $pool       Pool size.
 	 * @phpstan-param list<string> $post_types
-	 * @phpstan-param list<string> $statuses
 	 */
-	private static function cache_key( string $search, array $post_types, array $statuses, int $pool ): string {
+	private static function cache_key( string $search, array $post_types, int $pool ): string {
 		sort( $post_types );
-		sort( $statuses );
 		$context = [
 			'blog_id'    => get_current_blog_id(),
 			'mode'       => Settings::native_mode(),
 			'pool'       => $pool,
 			'post_types' => $post_types,
-			'statuses'   => $statuses,
 			'search'     => $search,
 			'version'    => Settings::native_cache_version(),
 		];
@@ -356,10 +400,10 @@ class Native_Search {
 	}
 
 	/**
-	 * Log a throttled diagnostic when hybrid runs without FULLTEXT.
+	 * Log a throttled diagnostic when a sparse-capable mode runs without FULLTEXT.
 	 */
-	private static function maybe_log_hybrid_without_fulltext(): void {
-		if ( 'hybrid' !== Settings::native_mode() || ! class_exists( '\WPVDB_Search\Schema' ) || \WPVDB_Search\Schema::has_fulltext_index() ) {
+	private static function maybe_log_fulltext_mode_without_fulltext(): void {
+		if ( ! in_array( Settings::native_mode(), [ 'hybrid', 'sparse' ], true ) || ! class_exists( '\WPVDB_Search\Schema' ) || \WPVDB_Search\Schema::has_fulltext_index() ) {
 			return;
 		}
 
@@ -370,7 +414,7 @@ class Native_Search {
 		set_transient( 'wpvdb_native_search_fulltext_warning', '1', HOUR_IN_SECONDS );
 
 		if ( class_exists( '\WPVDB\Logger' ) ) {
-			\WPVDB\Logger::warning( 'WPVDB Smart Search native search is running hybrid mode without a FULLTEXT index; ranking is dense-only until sparse search is ready.' );
+			\WPVDB\Logger::warning( 'WPVDB Smart Search native search is running a sparse-capable mode without a FULLTEXT index; sparse ranking is unavailable until the index is ready.' );
 		}
 	}
 }

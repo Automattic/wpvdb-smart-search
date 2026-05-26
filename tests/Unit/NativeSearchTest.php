@@ -40,7 +40,9 @@ final class NativeSearchTest extends TestCase {
 		$GLOBALS['wpvdb_smart_search_test']['posts']           = [];
 		$GLOBALS['wpvdb_smart_search_test']['search_post_ids'] = [];
 		$GLOBALS['wpvdb_smart_search_test']['search_calls']    = 0;
+		$GLOBALS['wpvdb_smart_search_test']['fulltext_ready']  = true;
 		$GLOBALS['wpvdb_smart_search_test']['filters']         = [];
+		$GLOBALS['wpvdb_smart_search_test']['logs']            = [];
 	}
 
 	/**
@@ -134,6 +136,78 @@ final class NativeSearchTest extends TestCase {
 	}
 
 	/**
+	 * Test earlier posts_pre_query filters are respected.
+	 *
+	 * @covers \WPVDB_Smart_Search\Surfaces\Native_Search::pre_query
+	 */
+	public function test_pre_query_preserves_existing_posts_from_earlier_filter(): void {
+		$existing = [ (object) [ 'ID' => 99 ] ];
+		$query    = new WP_Query( [ 's' => 'markets' ] );
+		$query->set( Native_Search::QUERY_FLAG, true );
+
+		$posts = Native_Search::pre_query( $existing, $query );
+
+		self::assertSame( $existing, $posts, 'Native search should not replace results supplied by an earlier posts_pre_query filter.' );
+		self::assertSame( 0, $GLOBALS['wpvdb_smart_search_test']['search_calls'], 'Existing short-circuit results should not call the search service.' );
+	}
+
+	/**
+	 * Test late query mutations are revalidated before semantic handling.
+	 *
+	 * @covers \WPVDB_Smart_Search\Surfaces\Native_Search::pre_query
+	 */
+	public function test_pre_query_revalidates_late_query_mutations(): void {
+		$query = new WP_Query(
+			[
+				's'      => 'markets',
+				'author' => 123,
+			]
+		);
+		$query->set( Native_Search::QUERY_FLAG, true );
+
+		$posts = Native_Search::pre_query( null, $query );
+
+		self::assertNull( $posts, 'Unsupported constraints added after pre_get_posts should fall through to WordPress search.' );
+		self::assertSame( 0, $GLOBALS['wpvdb_smart_search_test']['search_calls'], 'Unsupported late query mutations should not call the search service.' );
+		self::assertSame( '', $query->get( 'no_found_rows' ), 'Queries that fall through should keep their original pagination behavior.' );
+	}
+
+	/**
+	 * Test ranker errors fall back when fallback is enabled.
+	 *
+	 * @covers \WPVDB_Smart_Search\Surfaces\Native_Search::pre_query
+	 */
+	public function test_pre_query_falls_back_on_search_error_when_enabled(): void {
+		$GLOBALS['wpvdb_smart_search_test']['search_post_ids'] = new \WP_Error( 'search_failed', 'Search failed.' );
+		$query = new WP_Query( [ 's' => 'markets' ] );
+		$query->set( Native_Search::QUERY_FLAG, true );
+
+		$posts = Native_Search::pre_query( null, $query );
+
+		self::assertNull( $posts, 'Search errors should fall through to keyword search when fallback is enabled.' );
+		self::assertSame( 1, $GLOBALS['wpvdb_smart_search_test']['search_calls'], 'The search service should be called before the fallback decision.' );
+	}
+
+	/**
+	 * Test ranker errors return zero results when fallback is disabled.
+	 *
+	 * @covers \WPVDB_Smart_Search\Surfaces\Native_Search::pre_query
+	 */
+	public function test_pre_query_returns_zero_on_search_error_when_fallback_disabled(): void {
+		$GLOBALS['wpvdb_smart_search_test']['options'][ Settings::OPTION_NAME ]['native_fallback'] = false;
+
+		$GLOBALS['wpvdb_smart_search_test']['search_post_ids'] = new \WP_Error( 'search_failed', 'Search failed.' );
+		$query = new WP_Query( [ 's' => 'markets' ] );
+		$query->set( Native_Search::QUERY_FLAG, true );
+
+		$posts = Native_Search::pre_query( null, $query );
+
+		self::assertSame( [], $posts, 'Search errors should return zero results when fallback is disabled.' );
+		self::assertSame( 0, $query->found_posts, 'Fallback-disabled search errors should set zero found posts.' );
+		self::assertSame( 0, $query->max_num_pages, 'Fallback-disabled search errors should set zero pages.' );
+	}
+
+	/**
 	 * Test a non-empty semantic pool emptied by visibility does not fall back.
 	 *
 	 * @covers \WPVDB_Smart_Search\Surfaces\Native_Search::pre_query
@@ -155,5 +229,83 @@ final class NativeSearchTest extends TestCase {
 		self::assertSame( [], $posts, 'Unreadable semantic matches should produce zero visible results without keyword fallback.' );
 		self::assertSame( 0, $query->found_posts, 'Found posts should count only readable results.' );
 		self::assertSame( 0, $query->max_num_pages, 'No readable results should produce no pages.' );
+	}
+
+	/**
+	 * Test pagination past the ranked pool boundary returns an empty page.
+	 *
+	 * @covers \WPVDB_Smart_Search\Surfaces\Native_Search::pre_query
+	 */
+	public function test_pre_query_returns_empty_page_past_pool_boundary(): void {
+		$GLOBALS['wpvdb_smart_search_test']['search_post_ids'] = [ 1, 2 ];
+		$GLOBALS['wpvdb_smart_search_test']['posts']           = [
+			1 => [
+				'post_type'   => 'post',
+				'post_status' => 'publish',
+				'readable'    => true,
+			],
+			2 => [
+				'post_type'   => 'post',
+				'post_status' => 'publish',
+				'readable'    => true,
+			],
+		];
+		$query = new WP_Query(
+			[
+				's'              => 'markets',
+				'paged'          => 3,
+				'posts_per_page' => 1,
+			]
+		);
+		$query->set( Native_Search::QUERY_FLAG, true );
+
+		$posts = Native_Search::pre_query( null, $query );
+
+		self::assertSame( [], $posts, 'Pages beyond the readable semantic pool should be empty.' );
+		self::assertSame( 2, $query->found_posts, 'Found posts should remain capped to the readable semantic pool.' );
+		self::assertSame( 2, $query->max_num_pages, 'Max pages should remain capped to the readable semantic pool.' );
+	}
+
+	/**
+	 * Test cached pools are reused across status-specific visibility passes.
+	 *
+	 * @covers \WPVDB_Smart_Search\Surfaces\Native_Search::pre_query
+	 */
+	public function test_pre_query_reuses_cached_pool_across_status_filters(): void {
+		$GLOBALS['wpvdb_smart_search_test']['search_post_ids'] = [ 1, 2 ];
+		$GLOBALS['wpvdb_smart_search_test']['posts']           = [
+			1 => [
+				'post_type'   => 'post',
+				'post_status' => 'publish',
+				'readable'    => true,
+			],
+			2 => [
+				'post_type'   => 'post',
+				'post_status' => 'private',
+				'readable'    => true,
+			],
+		];
+		$publish_query = new WP_Query(
+			[
+				's'           => 'markets',
+				'post_status' => 'publish',
+			]
+		);
+		$publish_query->set( Native_Search::QUERY_FLAG, true );
+		Native_Search::pre_query( null, $publish_query );
+
+		$private_query = new WP_Query(
+			[
+				's'           => 'markets',
+				'post_status' => 'private',
+			]
+		);
+		$private_query->set( Native_Search::QUERY_FLAG, true );
+		$posts = Native_Search::pre_query( null, $private_query );
+
+		self::assertIsArray( $posts, 'Status-specific passes should hydrate from the cached pre-visibility pool.' );
+		self::assertCount( 1, $posts, 'Private status filtering should happen after cache lookup.' );
+		self::assertSame( 2, $posts[0]->ID, 'The private query should see the private readable result.' );
+		self::assertSame( 1, $GLOBALS['wpvdb_smart_search_test']['search_calls'], 'Post status should not fragment the cached semantic pool.' );
 	}
 }
