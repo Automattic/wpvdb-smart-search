@@ -5,7 +5,7 @@ Agent guidance for this repository. Keep this file focused on non-obvious constr
 ## Boundaries
 
 - Do not add credentials, tokens, application passwords, site-specific hostnames, or private deployment details.
-- Shared search algorithms belong in `https://github.com/rbcorrales/wpvdb-search`. Keep this plugin focused on the standalone UI and public REST adapter.
+- Shared search algorithms belong in `https://github.com/Automattic/wpvdb-search`. Keep this plugin focused on the standalone UI and public REST adapter.
 - Do not add Playground demo behavior here. Demo model routing, fixture data, and offline demo work belong in `wpvdb-playground-demo`.
 - Keep the public REST response shape stable unless the React client is updated in the same change. The client consumes timing and count fields directly.
 

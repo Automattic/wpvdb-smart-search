@@ -21,8 +21,8 @@ msgstr "WPVDB Smart Search"
 
 #. Plugin URI of the plugin
 #: wpvdb-smart-search.php
-msgid "https://github.com/rbcorrales/wpvdb-smart-search"
-msgstr "https://github.com/rbcorrales/wpvdb-smart-search"
+msgid "https://github.com/Automattic/wpvdb-smart-search"
+msgstr "https://github.com/Automattic/wpvdb-smart-search"
 
 #. Description of the plugin
 #: wpvdb-smart-search.php

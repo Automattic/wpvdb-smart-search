@@ -4,13 +4,13 @@
 	"description": "Adds a public Smart Search page and REST endpoint for wpvdb dense, sparse, and hybrid search.",
 	"author": "Automattic, Ramon Corrales",
 	"license": "GPL-2.0-or-later",
-	"homepage": "https://github.com/rbcorrales/wpvdb-smart-search",
+	"homepage": "https://github.com/Automattic/wpvdb-smart-search",
 	"repository": {
 		"type": "git",
-		"url": "git+https://github.com/rbcorrales/wpvdb-smart-search.git"
+		"url": "git+https://github.com/Automattic/wpvdb-smart-search.git"
 	},
 	"bugs": {
-		"url": "https://github.com/rbcorrales/wpvdb-smart-search/issues"
+		"url": "https://github.com/Automattic/wpvdb-smart-search/issues"
 	},
 	"private": true,
 	"scripts": {
