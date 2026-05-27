@@ -21,7 +21,7 @@ msgstr ""
 
 #. Plugin URI of the plugin
 #: wpvdb-smart-search.php
-msgid "https://github.com/rbcorrales/wpvdb-smart-search"
+msgid "https://github.com/Automattic/wpvdb-smart-search"
 msgstr ""
 
 #. Description of the plugin

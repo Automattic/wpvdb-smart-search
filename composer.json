@@ -1,9 +1,9 @@
 {
-	"name": "rbcorrales/wpvdb-smart-search",
+	"name": "automattic/wpvdb-smart-search",
 	"description": "Adds a public Smart Search page and REST endpoint for wpvdb dense, sparse, and hybrid search.",
 	"type": "wordpress-plugin",
 	"license": "GPL-2.0-or-later",
-	"homepage": "https://github.com/rbcorrales/wpvdb-smart-search",
+	"homepage": "https://github.com/Automattic/wpvdb-smart-search",
 	"authors": [
 		{
 			"name": "Automattic",
@@ -30,8 +30,8 @@
 		"fix": "./vendor/bin/phpcbf"
 	},
 	"support": {
-		"issues": "https://github.com/rbcorrales/wpvdb-smart-search/issues",
-		"source": "https://github.com/rbcorrales/wpvdb-smart-search"
+		"issues": "https://github.com/Automattic/wpvdb-smart-search/issues",
+		"source": "https://github.com/Automattic/wpvdb-smart-search"
 	},
 	"config": {
 		"platform": {
