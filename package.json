@@ -1,6 +1,6 @@
 {
 	"name": "wpvdb-smart-search",
-	"version": "0.2.0",
+	"version": "0.3.0",
 	"description": "Adds a public Smart Search page and REST endpoint for wpvdb dense, sparse, and hybrid search.",
 	"author": "Automattic, Ramon Corrales",
 	"license": "GPL-2.0-or-later",

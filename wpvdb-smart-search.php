@@ -3,7 +3,7 @@
  * Plugin Name:      WPVDB Smart Search
  * Plugin URI:       https://github.com/Automattic/wpvdb-smart-search
  * Description:      Adds a public Smart Search page, REST endpoint, and optional site search replacement for wpvdb dense, sparse, and hybrid search.
- * Version:          0.2.0
+ * Version:          0.3.0
  * Author:           Automattic, Ramon Corrales
  * Author URI:       https://automattic.com/
  * Requires at least: 6.9
@@ -21,7 +21,7 @@ namespace WPVDB_Smart_Search;
 
 defined( 'ABSPATH' ) || exit;
 
-define( 'WPVDB_SMART_SEARCH_VERSION', '0.2.0' );
+define( 'WPVDB_SMART_SEARCH_VERSION', '0.3.0' );
 define( 'WPVDB_SMART_SEARCH_FILE', __FILE__ );
 define( 'WPVDB_SMART_SEARCH_DIR', __DIR__ );
 define( 'WPVDB_SMART_SEARCH_URL', plugin_dir_url( __FILE__ ) );
